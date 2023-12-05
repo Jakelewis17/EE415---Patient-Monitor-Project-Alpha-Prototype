@@ -84,11 +84,6 @@ void read_spo2()
   }
 }
 
-// Callback (registered below) fired when a pulse is detected
-void onBeatDetected()
-{
-    Serial.println("Beat!");
-}
 
 void spo2_measurment()
 {
@@ -121,63 +116,7 @@ void spo2_measurment()
   else {
     Serial.println("done\n");
   }
-  // // Asynchronously dump heart rate and oxidation levels to the serial
-  // //address: 0x55
-  // Wire.begin(SDA_PIN, SCL_PIN);
-  // Serial.println("Wire begin");
-  // Wire.beginTransmission(0x55);
-  // Serial.println("Wire begin 2");
-
-  // digitalWrite(PIN_GPIO, HIGH);
-  // digitalWrite(PIN_SPO2_RST, LOW);
-  // delay(10);
-  // digitalWrite(PIN_SPO2_RST, HIGH);
-  // delay(1000);
-  // pinMode(PIN_GPIO, INPUT_PULLUP); // To be used as an interrupt later
-
-  // // Register a callback for the beat detection
-  // pox.setOnBeatDetectedCallback(onBeatDetected);
-
-  // // if (!pox.begin()) 
-  // //   {
-  // //       Serial.println("FAILED");
-  // //       for(;;)
-  // //       {
-  // //         tft.fillScreen(TFT_BLACK);
-  // //         tft.drawString("Failed", 0, 80, 4);
-  // //       }
-  // //       return;
-  // //   } 
-  // //   else 
-  // //   {
-  // //       Serial.println("SUCCESS");
-  // //   }
-
-  // for(;;)
-  // {
-    
-  //   // For both, a value of 0 means "invalid"
-  //   if (millis() - tsLastReport > REPORTING_PERIOD_MS) {
-  //       Serial.print("Heart rate:");
-  //       Serial.print(pox.getHeartRate());
-  //       Serial.print("bpm / SpO2:");
-  //       Serial.print(pox.getSpO2());
-  //       Serial.println("%");
-
-  //       tsLastReport = millis();
-  //   }
-
-  //   pox.update();
-
-  //   rotary_sw.read();
-  //   if(what_press == 3)
-  //   {
-  //     //long press terminates the loop
-  //     what_press = 0;
-  //     tft.fillScreen(TFT_RED);
-  //     break;
-  //   }
-  // }
+  
 
   tft.fillScreen(TFT_BLUE);
   title.fillSprite(TFT_BLUE);
@@ -187,11 +126,6 @@ void spo2_measurment()
 
   digit_box.setTextColor(TFT_BLACK, TFT_BLUE);
   digit_box.fillSprite(TFT_BLUE);
-
-  // title2.fillSprite(TFT_BLUE);
-  // title2.setTextColor(TFT_WHITE, TFT_BLUE);
-  // title2.drawString("SPO2: ", 0, 0);
-  // title2.pushSprite(30, 150);
 
   /* Large portion of code taken from Sparkfun library */
 
@@ -204,6 +138,7 @@ void spo2_measurment()
 
   Serial.read();
 
+  //initialize variables
   byte ledBrightness = 60; //Options: 0=Off to 255=50mA
   byte sampleAverage = 4; //Options: 1, 2, 4, 8, 16, 32
   byte ledMode = 2; //Options: 1 = Red only, 2 = Red + IR, 3 = Red + IR + Green
@@ -215,8 +150,10 @@ void spo2_measurment()
   int avg_hr = 0;
   int finger_detect = 0;
 
+  //configure sensor
   particleSensor.setup(ledBrightness, sampleAverage, ledMode, sampleRate, pulseWidth, adcRange); //Configure sensor with these settings
 
+  //display "calibrating" screen
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setFreeFont(&Dialog_plain_35); //custom font
@@ -239,17 +176,10 @@ void spo2_measurment()
       {
         //no finger detected
         finger_detect = 0;
-        //display_spo2(finger_detect);
         finger_detect = 1;
       }
 
     particleSensor.nextSample(); //We're finished with this sample so move to next sample
-
-    Serial.print(F("red="));
-    Serial.print(redBuffer[i], DEC);
-    Serial.print(F(", ir="));
-    Serial.println(irBuffer[i], DEC);
-
 
   }
 
@@ -257,7 +187,7 @@ void spo2_measurment()
   maxim_heart_rate_and_oxygen_saturation(irBuffer, bufferLength, redBuffer, &spo2, &validSPO2, &heartRate, &validHeartRate);
 
   
-  //after loading
+  //after loading display
   tft.fillScreen(TFT_BLUE);
   spo2_display.drawString(String(spo2), 0, 0, 7);
   spo2_display.pushSprite(80, 150);
@@ -292,6 +222,7 @@ void spo2_measurment()
       particleSensor.nextSample(); //We're finished with this sample so move to next sample
 
       //send samples and calculation result to terminal program through UART
+      /*
       Serial.print(F("red="));
       Serial.print(redBuffer[i], DEC);
       Serial.print(F(", ir="));
@@ -308,8 +239,9 @@ void spo2_measurment()
 
       Serial.print(F(", SPO2Valid="));
       Serial.println(validSPO2, DEC);
+      */
 
-        //check for long press to go back to menu
+      //check for long press to go back to menu
       rotary_sw.read();
       if(what_press == 3)
       { 
@@ -321,8 +253,8 @@ void spo2_measurment()
     //After gathering 25 new samples recalculate HR and SP02
     maxim_heart_rate_and_oxygen_saturation(irBuffer, bufferLength, redBuffer, &spo2, &validSPO2, &heartRate, &validHeartRate);
 
-    Serial.println(spo2);
-    Serial.println(heartRate);
+    //Serial.println(spo2);
+    //Serial.println(heartRate);
 
     //display
     display_spo2(1);
@@ -358,7 +290,6 @@ void display_spo2(int finger_detect)
     //no finger detected - display 0
     spo2_display.drawString("000", 0, 0, 7);
     spo2_display.pushSprite(80, 150);
-    //digit_box.pushSprite(143, 150);
   }
   else
   {

@@ -31,6 +31,7 @@ extern TFT_eSprite title;
 extern TFT_eSprite hr_display;
 extern TFT_eSprite digit_box;
 
+//global variables
 int BPM = 0;
 int beat_old = 0;
 float beats[15] = { 0 };  // Used to calculate average BPM
@@ -79,6 +80,7 @@ void read_ecg()
 
 void ecg_measurement()
 {
+  //define variables
   tft.fillScreen(TFT_BLUE);
   int ecg_reading = 0;
   int ecg_counter = 0;
@@ -90,8 +92,9 @@ void ecg_measurement()
   int heartbeat_counter = 0, heartbeat_flag = 0;
   int initial_measurments = 0;
 
-  int temp_reading[10] = {1500, 1400, 1500, 1200, 1100, 1900, 1300, 1500, 1500, 1500};
-  int temp_index = 0;
+  //testing variables
+  //int temp_reading[10] = {1500, 1400, 1500, 1200, 1100, 1900, 1300, 1500, 1500, 1500};
+  //int temp_index = 0;
 
   hr_display.setTextColor(TFT_WHITE, TFT_BLUE);
 
@@ -101,10 +104,9 @@ void ecg_measurement()
   title.drawString("HR: ", 0, 0);
   title.pushSprite(30, 40);
 
+  //box for fixing third digit problem
   digit_box.setTextColor(TFT_BLACK, TFT_BLUE);
   digit_box.fillSprite(TFT_BLUE);
-
-  //tft.setTextColor(TFT_WHITE, TFT_BLUE);
 
   for(;;) //infinite loop getting measurement
   {
@@ -112,6 +114,7 @@ void ecg_measurement()
     ecg_reading = analogRead(PinECG);
     ecg_reading = ecg_reading / 17;
 
+    //for testing
     //ecg_reading = ecg_reading % 220;
     //if(temp_index == 10)
     //{
@@ -156,7 +159,7 @@ void ecg_measurement()
       break;
     }
 
-    temp_index++;
+    //temp_index++;
     heartbeat_counter++;
     
     //detect heartbeat by checking if reading goes over a threshold
@@ -179,7 +182,7 @@ void ecg_measurement()
 
     //logic for displaying correctly
     //if((prev_hr >= 100) && (heartrate < 100))
-   // {
+    // {
       //hr_display.drawString(String(0), 100, 30, 7);
       //hr_display.fillSprite(TFT_BLUE);
 
@@ -188,14 +191,10 @@ void ecg_measurement()
 
     //}
 
-    if(BPM < 100)
-    {
-      //digit_box.pushSprite(160, 40);
-    }
-
     // BPM calculation check
     if (heartrate > threshold && belowThreshold == true)
     {
+      //beat detected
       calculateBPM();
       belowThreshold = false;
     }
@@ -206,30 +205,21 @@ void ecg_measurement()
     
     if(initial_measurments >= 50)
     {
+      //display heartrate
       hr_display.drawString(String(BPM), 0, 0, 7);
       hr_display.pushSprite(100, 30);
       digit_box.pushSprite(163, 30);
     }
 
-    //tft.setTextColor(TFT_RED, TFT_GREEN);
-    //digit_box.pushSprite(160, 40);
-
-    //display heart rate
-    //char heartrate_string[10];
-    //sprintf(heartrate_string, "%02d", heartrate);
-    //hr_display.drawString(String(heartrate), 0, 0, 7);
-    //hr_display.drawString(heartrate_string, 0, 0, 7);
-    //hr_display.pushSprite(100, 30);
-
     delay(70);
     
-
     //Serial.println("ECG: ");
     //Serial.println(ecg_reading);
 
     Serial.println("HR ");
     Serial.println(BPM);
 
+    //get 50 measurments before displaying heartrate
     if(initial_measurments < 50)
     {
       initial_measurments++;

@@ -88,7 +88,6 @@ void swHandler(BfButton* btn, BfButton::press_pattern_t pattern)
 
 /* Setup Function*/
 void setup() {
-  //set up I2C
   
   Serial.begin(115200);
   Serial.println("Hello from startup");
@@ -153,9 +152,6 @@ void setup() {
 
 /* Infinite Loop Function */
 void loop() {
-
-  // Make sure to call update as fast as possible
-  //pox.update();
 
 if(TurnDetected) //check if rotary encoder detected an input
 {
