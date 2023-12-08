@@ -32,6 +32,7 @@ TFT_eSprite title = TFT_eSprite(&tft);
 TFT_eSprite digit_box = TFT_eSprite(&tft);
 TFT_eSprite hr_display = TFT_eSprite(&tft);
 TFT_eSprite spo2_display = TFT_eSprite(&tft);
+TFT_eSprite bp_display = TFT_eSprite(&tft);
 
 /* Invoke MAX30102 Object */
 PulseOximeter pox;
@@ -88,6 +89,7 @@ void swHandler(BfButton* btn, BfButton::press_pattern_t pattern)
 
 /* Setup Function*/
 void setup() {
+  //set up I2C
   
   Serial.begin(115200);
   Serial.println("Hello from startup");
@@ -102,6 +104,9 @@ void setup() {
   pinMode(PinDT, INPUT);
   pinMode(PIN_GPIO, OUTPUT);
   pinMode(PIN_SPO2_RST, OUTPUT);
+  pinMode(A1, OUTPUT);
+  pinMode(A2, OUTPUT);
+  pinMode(valveSwitch, OUTPUT);
 
   //set up interrupt
   attachInterrupt(PinCLK, rotarydetect, CHANGE); 
@@ -143,6 +148,10 @@ void setup() {
   spo2_display.setSwapBytes(true);
   spo2_display.setTextColor(TFT_WHITE, TFT_BLUE);
 
+  bp_display.createSprite(150, 47);
+  bp_display.setSwapBytes(true);
+  bp_display.setTextColor(TFT_WHITE, TFT_BLUE);
+
   
   tft.fillScreen(TFT_WHITE); //fill the screen with white
 
@@ -152,6 +161,9 @@ void setup() {
 
 /* Infinite Loop Function */
 void loop() {
+
+  // Make sure to call update as fast as possible
+  //pox.update();
 
 if(TurnDetected) //check if rotary encoder detected an input
 {

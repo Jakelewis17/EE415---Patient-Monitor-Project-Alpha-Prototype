@@ -55,6 +55,10 @@ const int SCL_PIN = 22;
 const int PIN_GPIO = 19;
 const int PIN_SPO2_RST = 18;
 const int PINBP = 2;
+const int A1 = 16;
+const int A2 = 17;
+const int valveSwitch = 18;
+const int pVIn = 2;
 
 /* Function definitions */
 void read_ecg();
@@ -62,8 +66,18 @@ void read_spo2();
 void read_bp();
 void ecg_measurement();
 void spo2_measurment();
+void bp_measurement();
 void display_spo2(int finger_detect);
 void drawLine(int xPos, int analogVal);
 void calculateBPM(); 
+
+//Blood Pressure Functions
+void openValve();
+void closeValve();
+void cycleBPSystem();
+void runPump30s();
+void pumpOn();
+void stopPump();
+void displayBP(float pressure);
 
 #endif
