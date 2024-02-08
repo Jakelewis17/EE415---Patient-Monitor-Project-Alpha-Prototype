@@ -20,10 +20,10 @@
 
 extern int what_press;
 
-/* Define rotary encoder button */
+// Define rotary encoder button 
 extern BfButton rotary_sw;
 
-/* Invoke display objects from TFT library */
+// Invoke display objects from TFT library 
 extern TFT_eSPI tft;  
 extern TFT_eSprite ecg;
 extern TFT_eSprite background;

@@ -16,15 +16,16 @@
  *                                                                             *
  ******************************************************************************/
 
+
 #include "patient_monitor.h"
 
-/* Global variables */
+// Global variables
 int what_press = 0;
 
-/* Define rotary encoder button */
+// Define rotary encoder button 
 BfButton rotary_sw(BfButton::STANDALONE_DIGITAL, PinSW, true, LOW);
 
-/* Invoke display objects from TFT library */
+// Invoke display objects from TFT library 
 TFT_eSPI tft = TFT_eSPI();  
 TFT_eSprite ecg = TFT_eSprite(&tft);
 TFT_eSprite background = TFT_eSprite(&tft);
@@ -34,16 +35,16 @@ TFT_eSprite hr_display = TFT_eSprite(&tft);
 TFT_eSprite spo2_display = TFT_eSprite(&tft);
 TFT_eSprite bp_display = TFT_eSprite(&tft);
 
-/* Invoke MAX30102 Object */
+// Invoke MAX30102 Object 
 PulseOximeter pox;
 
 MAX30105 particleSensor;
 
-/* Define interrupt variables */
+// Define interrupt variables 
 volatile boolean TurnDetected; //need volatile for interrupts
 volatile boolean SWDetected; 
 
-/*  Main Variable Definitions */
+//  Main Variable Definitions 
 int PreviousCLK;
 int PreviousDATA;
 int LEDBrightness = 0;
@@ -56,14 +57,14 @@ int spo2_title_bg_color = 0;
 uint32_t tsLastReport = 0;
 
 
-/* Define interrupt routines for KY-040 rotary encoder */
+// Define interrupt routines for KY-040 rotary encoder 
 void rotarydetect()
 {
   //interrupt routine runs if CLK pin changes state
   TurnDetected = true;
 }
 
-/* Encoder press handler */
+// Encoder press handler 
 void swHandler(BfButton* btn, BfButton::press_pattern_t pattern)
 {
   //update what_press variable depending on type of input from button
@@ -87,7 +88,7 @@ void swHandler(BfButton* btn, BfButton::press_pattern_t pattern)
 }
 
 
-/* Setup Function*/
+// Setup Function
 void setup() {
   //set up I2C
   
@@ -116,7 +117,7 @@ void setup() {
   .onDoublePress(swHandler)
   .onPressFor(swHandler, 1000);
 
-  /* TFT display setup */
+  // TFT display setup 
   tft.init();
   tft.setRotation(14);
   tft.fillScreen(TFT_BLACK);
@@ -125,7 +126,7 @@ void setup() {
   tft.setTextWrap(true, true);
 
 
-  /* TFT sprites setup*/
+  // TFT sprites setup
   ecg.createSprite(240,107); //create sprite for ecg waveform
   ecg.setSwapBytes(true);
 
@@ -159,7 +160,7 @@ void setup() {
 
 }
 
-/* Infinite Loop Function */
+// Infinite Loop Function 
 void loop() {
 
   // Make sure to call update as fast as possible
@@ -207,10 +208,10 @@ int bp_count = 0;
 int bp_average = 0;
 int bp_sum = 0;
 //Serial.print((count % 3));
-/* Check what parameter should be displayed and display it */
+// Check what parameter should be displayed and display it 
 if((count % 3) == 0)
 {
-  /* ECG Parameter */
+  // ECG Parameter 
 
   //change background color
   if(bg_color != 0)
@@ -274,7 +275,7 @@ if((count % 3) == 0)
 }
 else if((count % 3) == 1)
 {
-  /* Blood Pressure Paramter */
+  // Blood Pressure Paramter 
 
   //change background color
   if(bg_color != 1)
@@ -313,7 +314,7 @@ else if((count % 3) == 1)
 }
 else  
 {
-  /* SPO2 Parameter */
+  // SPO2 Parameter 
 
   //change background color
   if(bg_color != 2)
@@ -361,7 +362,7 @@ else
 
 }
 
-  /* Detect a push of the rotary encoder */
+  // Detect a push of the rotary encoder 
   rotary_sw.read();
 
   if((what_press == 1) && ((count % 3) == 0))

@@ -20,10 +20,10 @@
 
 extern int what_press;
 
-/* Define rotary encoder button */
+// Define rotary encoder button 
 extern BfButton rotary_sw;
 
-/* Invoke display objects from TFT library */
+// Invoke display objects from TFT library 
 extern TFT_eSPI tft;  
 extern TFT_eSprite ecg;
 extern TFT_eSprite background;
@@ -32,7 +32,7 @@ extern TFT_eSprite digit_box;
 extern TFT_eSprite hr_display;
 extern TFT_eSprite spo2_display;
 
-/* SPO2 Variables */
+// SPO2 Variables 
 extern uint32_t tsLastReport;
 extern PulseOximeter pox;
 
@@ -67,7 +67,7 @@ void read_spo2()
     rotary_sw.read();
     if(what_press == 1)
     {
-      //single press - jump to ECG measurement function
+      //single press - jump to SpO2 measurement function
       spo2_measurment();
       what_press = 0;
       tft.fillScreen(TFT_RED);
@@ -89,7 +89,7 @@ void spo2_measurment()
 {
   byte error, address;
   int nDevices;
-  Serial.println("Scanning...");
+  Serial.println("Scanning...");  
   nDevices = 0;
   for(address = 1; address < 127; address++ ) {
     Wire.beginTransmission(address);
@@ -103,7 +103,7 @@ void spo2_measurment()
       nDevices++;
     }
     else if (error==4) {
-      Serial.print("Unknow error at address 0x");
+      Serial.print("Unknown error at address 0x");
       if (address<16) {
         Serial.print("0");
       }
@@ -127,7 +127,7 @@ void spo2_measurment()
   digit_box.setTextColor(TFT_BLACK, TFT_BLUE);
   digit_box.fillSprite(TFT_BLUE);
 
-  /* Large portion of code taken from Sparkfun library */
+  // Large portion of code taken from Sparkfun library 
 
   // Initialize sensor
   if (!particleSensor.begin(Wire, I2C_SPEED_FAST)) //Use default I2C port, 400kHz speed

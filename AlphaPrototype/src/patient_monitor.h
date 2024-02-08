@@ -16,11 +16,11 @@
  *                                                                             *
  ******************************************************************************/
 
-/* Guard Code */
+// Guard Code 
 #ifndef PATIENT_MONITOR_H
 #define PATIENT_MONITOR_H
 
-/* Libraries */
+// Libraries 
 #include <Arduino.h>
 #include <SPI.h>
 #include <TFT_eSPI.h>
@@ -33,6 +33,7 @@
 #include "heartbeat/hb_frame2.h"
 #include "heartbeat/hb_frame3.h"
 #include "heartbeat/hb_frame4.h"
+// SpO2
 #include "SPO2_gif/SPO2_frame0.h"
 #include "SPO2_gif/SPO2_frame1.h"
 #include "SPO2_gif/SPO2_frame2.h"
@@ -41,11 +42,12 @@
 #include "MAX30100_PulseOximeter.h"
 #include "MAX30105.h"
 #include "spo2_algorithm.h"
+#include <SparkFun_Bio_Sensor_Hub_Library.h>
 
 #define REPORTING_PERIOD_MS     1000
 #define MAX_BRIGHTNESS 255
 
-/* Define IO Pins */
+// Define IO Pins 
 const int PinCLK = 27;
 const int PinDT = 14;
 const int PinSW = 13;
@@ -60,7 +62,8 @@ const int A2 = 17;
 const int valveSwitch = 18;
 const int pVIn = 2;
 
-/* Function definitions */
+
+// Function definitions 
 void read_ecg();
 void read_spo2();
 void read_bp();
