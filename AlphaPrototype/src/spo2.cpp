@@ -37,7 +37,7 @@ extern uint32_t tsLastReport;
 extern PulseOximeter pox;
 
 int32_t bufferLength; //data length
-int32_t spo2; //SPO2 value
+int32_t spo2_value; //SPO2 value
 int8_t validSPO2; //indicator to show if the SPO2 calculation is valid
 int32_t heartRate; //heart rate value
 int8_t validHeartRate; //indicator to show if the heart rate calculation is valid
@@ -46,6 +46,11 @@ uint32_t irBuffer[100]; //infrared LED sensor data
 uint32_t redBuffer[100];  //red LED sensor data
 int heartrate_data[50];
 int spo2_data[50];
+
+// Takes address, reset pin, and MFIO pin.
+SparkFun_Bio_Sensor_Hub bioHub(resPin, mfioPin); 
+
+bioData body;  //This is a type (int, byte, long, etc.)
 
 void read_spo2()
 {
@@ -87,36 +92,39 @@ void read_spo2()
 
 void spo2_measurment()
 {
-  byte error, address;
-  int nDevices;
-  Serial.println("Scanning...");  
-  nDevices = 0;
-  for(address = 1; address < 127; address++ ) {
-    Wire.beginTransmission(address);
-    error = Wire.endTransmission();
-    if (error == 0) {
-      Serial.print("I2C device found at address 0x");
-      if (address<16) {
-        Serial.print("0");
-      }
-      Serial.println(address,HEX);
-      nDevices++;
-    }
-    else if (error==4) {
-      Serial.print("Unknown error at address 0x");
-      if (address<16) {
-        Serial.print("0");
-      }
-      Serial.println(address,HEX);
-    }    
-  }
-  if (nDevices == 0) {
-    Serial.println("No I2C devices found\n");
+  
+  // Taken from SparkFun
+  Wire.begin();
+  int result = bioHub.begin();
+  if (result == 0) // Zero errors!
+    Serial.println("Sensor started!");
+  else
+    Serial.println("Could not communicate with the sensor!");
+ 
+  Serial.println("Configuring Sensor...."); 
+  int error = bioHub.configBpm(MODE_ONE); // Configuring just the BPM settings. 
+  if(error == 0){ // Zero errors!
+    Serial.println("Sensor configured.");
   }
   else {
-    Serial.println("done\n");
+    Serial.println("Error configuring sensor.");
+    Serial.print("Error: "); 
+    Serial.println(error); 
   }
+
+  // Data lags a bit behind the sensor, if you're finger is on the sensor when
+  // it's being configured this delay will give some time for the data to catch
+  // up. 
+  Serial.println("Loading up the buffer with data....");
+ 
+  //display "calibrating" screen
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setFreeFont(&Dialog_plain_35); //custom font
+  tft.drawString("Calibrating...: ", 15, 115);
   
+  delay(4000);
+//
 
   tft.fillScreen(TFT_BLUE);
   title.fillSprite(TFT_BLUE);
@@ -127,185 +135,80 @@ void spo2_measurment()
   digit_box.setTextColor(TFT_BLACK, TFT_BLUE);
   digit_box.fillSprite(TFT_BLUE);
 
-  // Large portion of code taken from Sparkfun library 
-
-  // Initialize sensor
-  if (!particleSensor.begin(Wire, I2C_SPEED_FAST)) //Use default I2C port, 400kHz speed
-  {
-    Serial.println(F("MAX30105 not found"));
-    while (1);
-  }
-
-  Serial.read();
-
-  //initialize variables
-  byte ledBrightness = 60; //Options: 0=Off to 255=50mA
-  byte sampleAverage = 4; //Options: 1, 2, 4, 8, 16, 32
-  byte ledMode = 2; //Options: 1 = Red only, 2 = Red + IR, 3 = Red + IR + Green
-  byte sampleRate = 100; //Options: 50, 100, 200, 400, 800, 1000, 1600, 3200
-  int pulseWidth = 411; //Options: 69, 118, 215, 411
-  int adcRange = 4096; //Options: 2048, 4096, 8192, 16384
-  int index = 0;
-  int avg_spo2 = 0;
-  int avg_hr = 0;
-  int finger_detect = 0;
-
-  //configure sensor
-  particleSensor.setup(ledBrightness, sampleAverage, ledMode, sampleRate, pulseWidth, adcRange); //Configure sensor with these settings
-
-  //display "calibrating" screen
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.setFreeFont(&Dialog_plain_35); //custom font
-  tft.drawString("Calibrating...: ", 15, 115);
-
-  for(;;)
-  {
-    bufferLength = 100; //buffer length of 100 stores 4 seconds of samples running at 25sps
-
-  //read the first 100 samples, and determine the signal range
-  for (byte i = 0 ; i < bufferLength ; i++)
-  {
-    while (particleSensor.available() == false) //do we have new data?
-      particleSensor.check(); //Check the sensor for new data
-
-    redBuffer[i] = particleSensor.getRed();
-    irBuffer[i] = particleSensor.getIR();
-
-    if(irBuffer[i] < 50000)
-      {
-        //no finger detected
-        finger_detect = 0;
-        finger_detect = 1;
-      }
-
-    particleSensor.nextSample(); //We're finished with this sample so move to next sample
-
-  }
-
-  //calculate heart rate and SpO2 after first 100 samples (first 4 seconds of samples)
-  maxim_heart_rate_and_oxygen_saturation(irBuffer, bufferLength, redBuffer, &spo2, &validSPO2, &heartRate, &validHeartRate);
-
+  int finger_detect = 0; // temp variable
   
   //after loading display
   tft.fillScreen(TFT_BLUE);
-  spo2_display.drawString(String(spo2), 0, 0, 7);
+  spo2_display.drawString(String(body.oxygen), 0, 0, 7);
   spo2_display.pushSprite(80, 150);
   title.setTextColor(TFT_WHITE, TFT_BLUE);
   title.pushSprite(70, 60);
   digit_box.pushSprite(143, 150);
-
-  //Continuously taking samples from MAX30102.  Heart rate and SpO2 are calculated every 1 second
-  for(;;)
-  {
-    //dumping the first 25 sets of samples in the memory and shift the last 75 sets of samples to the top
-    for (byte i = 25; i < 100; i++)
-    {
-      redBuffer[i - 25] = redBuffer[i];
-      irBuffer[i - 25] = irBuffer[i];
-    }
-
-    //take 25 sets of samples before calculating the heart rate.
-    for (byte i = 75; i < 100; i++)
-    {
     
-      redBuffer[i] = particleSensor.getRed();
-      irBuffer[i] = particleSensor.getIR();
+    //Continuously taking samples from MAX30101.  Heart rate and SpO2 are calculated every 1 second
+    for(;;){
+    // some code taken from SparkFun
+    // Information from the readBpm function will be saved to our "body"
+    // variable.
+      body = bioHub.readBpm();
+      
+      finger_detect = body.status; // 0 = no finger, 3 = finger detected;
+      
+        Serial.print("Heartrate: ");
+        Serial.println(body.heartRate); 
+        Serial.print("Confidence: ");
+        Serial.println(body.confidence); 
+        Serial.print("Oxygen: ");
+        Serial.println(body.oxygen);
+        Serial.print("Status: ");
+        Serial.println(body.status);
+        // Slow it down or your heart rate will go up trying to keep up
+        // with the flow of numbers
+        delay(250);
 
-      if(irBuffer[i] < 50000)
-      {
-        //no finger detected
-        finger_detect = 0;
-        display_spo2(finger_detect);
-        finger_detect = 1;
+        //display_spo2(finger_detect);
+      if (finger_detect == 3) {  
+        
+        display_spo2(3);        
       }
-      particleSensor.nextSample(); //We're finished with this sample so move to next sample
-
-      //send samples and calculation result to terminal program through UART
-      /*
-      Serial.print(F("red="));
-      Serial.print(redBuffer[i], DEC);
-      Serial.print(F(", ir="));
-      Serial.print(irBuffer[i], DEC);
-
-      Serial.print(F(", HR="));
-      Serial.print(heartRate, DEC);
-
-      Serial.print(F(", HRvalid="));
-      Serial.print(validHeartRate, DEC);
-
-      Serial.print(F(", SPO2="));
-      Serial.print(spo2, DEC);
-
-      Serial.print(F(", SPO2Valid="));
-      Serial.println(validSPO2, DEC);
-      */
+      else if (finger_detect == 0) {
+        display_spo2(0);
+      }
 
       //check for long press to go back to menu
       rotary_sw.read();
       if(what_press == 3)
-      { 
-        break;
-      }
-
-    }
-
-    //After gathering 25 new samples recalculate HR and SP02
-    maxim_heart_rate_and_oxygen_saturation(irBuffer, bufferLength, redBuffer, &spo2, &validSPO2, &heartRate, &validHeartRate);
-
-    //Serial.println(spo2);
-    //Serial.println(heartRate);
-
-    //display
-    display_spo2(1);
-
-    //check for long press to go back to menu
-    if(what_press == 3)
     {
       //long press terminates the loop
+      what_press = 0;
+      tft.fillScreen(TFT_WHITE);
       break;
     }
-
-  }
-
-  //check for long press to go back to menu
-  if(what_press == 3)
-  {
-    //long press terminates the loop
-    what_press = 0;
-    tft.fillScreen(TFT_WHITE);
-    break;
-  }
-
+   
   }
 
 }
 
-
 void display_spo2(int finger_detect)
 {
 
-  if(finger_detect == 0 || spo2 == -999)
+  if(finger_detect == 0)
   {
     //no finger detected - display 0
     spo2_display.drawString("000", 0, 0, 7);
     spo2_display.pushSprite(80, 150);
   }
   else
-  {
-    if(spo2 != -999) //if -999, invalid so don't display
-    {
-      //display average SPO2
-      spo2_display.drawString(String(spo2), 0, 0, 7);
-      spo2_display.pushSprite(80, 150);
+  {  
+    //display average SPO2
+    spo2_display.drawString(String(body.oxygen), 0, 0, 7);
+    spo2_display.pushSprite(80, 150);
 
-      if(spo2 < 100)
-      {
-        //fix extra digit issue
-        digit_box.pushSprite(143, 150);
-      }
-    }
-    
+    if(body.oxygen < 100)
+    {
+      //fix extra digit issue
+      digit_box.pushSprite(143, 150);
+    }      
   }
 
 }

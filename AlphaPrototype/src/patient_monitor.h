@@ -52,8 +52,8 @@ const int PinCLK = 27;
 const int PinDT = 14;
 const int PinSW = 13;
 const int PinECG = 15;
-const int SDA_PIN = 21;
-const int SCL_PIN = 22;
+//const int SDA_PIN = 21;
+//const int SCL_PIN = 22;
 const int PIN_GPIO = 19;
 const int PIN_SPO2_RST = 18;
 const int PINBP = 2;
@@ -61,6 +61,9 @@ const int A1 = 16;
 const int A2 = 17;
 const int valveSwitch = 18;
 const int pVIn = 2;
+// From Sparkfun Reset pin, MFIO pin
+const int resPin = 4;
+const int mfioPin = 5;
 
 
 // Function definitions 
